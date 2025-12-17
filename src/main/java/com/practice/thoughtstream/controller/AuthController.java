@@ -1,6 +1,7 @@
 package com.practice.thoughtstream.controller;
 
 import com.practice.thoughtstream.dto.ApiResponse;
+import com.practice.thoughtstream.dto.RefreshTokenDto;
 import com.practice.thoughtstream.dto.request.LoginRequestRequestDto;
 import com.practice.thoughtstream.dto.UsersJWtDto;
 import com.practice.thoughtstream.dto.request.RegisterUserRequestDto;
@@ -47,11 +48,27 @@ public class AuthController {
         );
 
         Users users = usersService.findUserEmail(requestDto.getEmail());
+        Map<String,String> tokens = getTokens(users);
 
+        return ApiResponse.response(HttpStatus.ACCEPTED, MessageConstants.LOGIN_SUCCESS, tokens );
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<Map<String,String>>> getRefreshedTokens(@RequestBody RefreshTokenDto requestdto){
+
+        String email = jwtUtility.getEmailFromToken(requestdto.getRefreshToken());
+        Users users = usersService.findUserEmail(email);
+        Map<String,String> tokens = getTokens(users);
+
+        return ApiResponse.response(HttpStatus.ACCEPTED, MessageConstants.LOGIN_SUCCESS, tokens );
+
+    }
+
+    private Map<String,String> getTokens(Users users){
         Map<String,String> tokens = new HashMap<>();
         tokens.put("accesstoken", jwtUtility.getJwtToken(new UsersJWtDto(users.getEmail(),users.getRole())));
         tokens.put("refreshToken", jwtUtility.getRefreshToken(new UsersJWtDto(users.getEmail(), users.getRole())));
 
-        return ApiResponse.response(HttpStatus.ACCEPTED, MessageConstants.LOGIN_SUCCESS, tokens );
+        return tokens;
     }
 }
