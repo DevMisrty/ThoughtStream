@@ -3,25 +3,25 @@ services:
   mongodb:
     image: mongo:8.0
     ports:
-      - "6379:6379"
+      - "27017:27017"
     environment:
-      MONGO_INITDB_DATABASE: throughtstreamdb
+      MONGO_INITDB_DATABASE: thoughtstreamdb
     networks:
-      throughtstream_network:
+      thoughtstream_network:
     healthcheck:
       test: [ "CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
-      - mongodb_volume:/mongo/db
+      - mongodb_volume:/data/db
 
   redis:
     image: redis:7.2
     ports:
-      - "27017:27017"
+      - "6379:6379"
     networks:
-      throughtstream_network:
+      thoughtstream_network:
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -33,10 +33,15 @@ services:
     ports:
       - "8082:8080"
     networks:
-      throughtstream_network:
+      thoughtstream_network:
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 networks:
-  throughtstream_network:
+  thoughtstream_network:
     driver: bridge
 
 volumes:

@@ -1,4 +1,4 @@
-package com.practice.thoughtstream.controller;
+package com.practice.thoughtstream.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

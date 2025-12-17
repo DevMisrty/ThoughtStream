@@ -1,6 +1,7 @@
 package com.practice.thoughtstream.controller;
 
 import com.practice.thoughtstream.dto.ApiResponse;
+import com.practice.thoughtstream.dto.request.LoginRequestRequestDto;
 import com.practice.thoughtstream.dto.UsersJWtDto;
 import com.practice.thoughtstream.dto.request.RegisterUserRequestDto;
 import com.practice.thoughtstream.dto.response.UserResponseDto;
