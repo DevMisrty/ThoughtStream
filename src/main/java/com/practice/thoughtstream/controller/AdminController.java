@@ -2,8 +2,8 @@ package com.practice.thoughtstream.controller;
 
 import com.practice.thoughtstream.dto.ApiResponse;
 import com.practice.thoughtstream.dto.RefreshTokenDto;
-import com.practice.thoughtstream.dto.request.LoginRequestDto;
 import com.practice.thoughtstream.dto.UsersJWtDto;
+import com.practice.thoughtstream.dto.request.LoginRequestDto;
 import com.practice.thoughtstream.dto.request.RegisterUserRequestDto;
 import com.practice.thoughtstream.dto.response.UserResponseDto;
 import com.practice.thoughtstream.exceptionHandler.exception.TokenExpireException;
@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,22 +27,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/auth/admin")
 @RequiredArgsConstructor
-@RequestMapping("/auth")
-public class AuthController {
+public class AdminController {
 
     private final UsersService usersService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtility jwtUtility;
+    private final DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UserResponseDto>>  registerUser(@RequestBody RegisterUserRequestDto requestDto){
-        UserResponseDto response = usersService.saveUsers(requestDto, UsersRole.USERS);
-        return ApiResponse.response(HttpStatus.CREATED, MessageConstants.USER_CREATED, response);
+    public ResponseEntity<ApiResponse<UserResponseDto>> getAdminRegister(@RequestBody RegisterUserRequestDto requestDto){
+        UserResponseDto userResponseDto = usersService.saveUsers(requestDto, UsersRole.ADMIN);
+        return ApiResponse.response(HttpStatus.CREATED, MessageConstants.USER_CREATED, userResponseDto);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<Map<String,String>>>  loginUser(@RequestBody LoginRequestDto requestDto){
+    public ResponseEntity<ApiResponse<Map<String,String>>> getAdminToken(@RequestBody LoginRequestDto requestDto){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         requestDto.getEmail(),
@@ -50,22 +52,23 @@ public class AuthController {
         );
 
         Users users = usersService.findUserEmail(requestDto.getEmail());
-        Map<String,String> tokens = getTokens(users);
+        Map<String,String> map = getTokens(users);
 
-        return ApiResponse.response(HttpStatus.ACCEPTED, MessageConstants.LOGIN_SUCCESS, tokens );
+        return ApiResponse.response(HttpStatus.ACCEPTED, MessageConstants.LOGIN_SUCCESS, map);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<Map<String,String>>> getRefreshedTokens(@RequestBody RefreshTokenDto requestdto) throws TokenExpireException {
+    public ResponseEntity<ApiResponse<Map<String,String>>> getAdminRefreshTokens(@RequestBody RefreshTokenDto refreshTokenDto) throws TokenExpireException {
 
-        if( !jwtUtility.isValidToken(requestdto.getRefreshToken()) ){
+        if( !jwtUtility.isValidToken(refreshTokenDto.getRefreshToken())){
             throw new TokenExpireException(MessageConstants.TOKEN_EXPIRE);
         }
-        String email = jwtUtility.getEmailFromToken(requestdto.getRefreshToken());
-        Users users = usersService.findUserEmail(email);
-        Map<String,String> tokens = getTokens(users);
 
-        return ApiResponse.response(HttpStatus.ACCEPTED, MessageConstants.LOGIN_SUCCESS, tokens );
+        String email = jwtUtility.getEmailFromToken(refreshTokenDto.getRefreshToken());
+        Users users = usersService.findUserEmail(email);
+        var tokens = getTokens(users);
+
+        return ApiResponse.response(HttpStatus.ACCEPTED, MessageConstants.LOGIN_SUCCESS, tokens);
 
     }
 

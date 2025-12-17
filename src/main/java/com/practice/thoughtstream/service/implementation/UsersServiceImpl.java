@@ -24,10 +24,10 @@ public class UsersServiceImpl implements UsersService {
     private final PasswordEncoder encoder;
 
     @Override
-    public UserResponseDto saveUsers(RegisterUserRequestDto requestDto) {
+    public UserResponseDto saveUsers(RegisterUserRequestDto requestDto, UsersRole role) {
         Users user = modelMapper.map(requestDto, Users.class);
         user.setPassword(encoder.encode(user.getPassword()));
-        user.setRole(UsersRole.USERS);
+        user.setRole(role);
         Users savedUser = repo.save(user);
         return modelMapper.map(savedUser, UserResponseDto.class);
     }

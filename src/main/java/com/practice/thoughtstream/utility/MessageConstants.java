@@ -7,6 +7,7 @@ package com.practice.thoughtstream.utility;
 public final class MessageConstants {
 
     public static final String USER_CREATED = "user created successfully. ";
+    public static final String TOKEN_EXPIRE = "Token has expire, pls login again";
 
     // Private constructor to prevent instantiation
     private MessageConstants() {}
