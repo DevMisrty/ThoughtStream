@@ -16,8 +16,8 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/public", "/auth/**").permitAll()
-                                .requestMatchers("/home").authenticated()
-                                    .requestMatchers("/page1").hasRole("ADMIN")
+                                .requestMatchers("/home").permitAll()
+                                    .requestMatchers("/page1").permitAll()
                         )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
