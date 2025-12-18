@@ -26,14 +26,7 @@ public class PostController {
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<PostDto>> addNewPost(@RequestBody PostDto postDto, HttpServletRequest request) throws InvalidTokenException {
 
-        String  token = request.getHeader("Authorization");
-
-        if(token == null || token.startsWith("Bearer")){
-            throw new InvalidTokenException(MessageConstants.INVALID_REQUEST);
-        }
-
-        token = token.substring(7);
-        String email = jwtUtility.getEmailFromToken(token);
+        String email = validateRequestAndGiveEmail(request);
 
         PostDto responseDto = postService.addNewPost(postDto, email);
 
@@ -45,14 +38,7 @@ public class PostController {
     public ResponseEntity<ApiResponse<Void>> deletePost(@PathVariable String id, HttpServletRequest request)
             throws InvalidTokenException, BadRequestException {
 
-        String token = request.getHeader("Authorization");
-
-        if(token ==null || !token.startsWith("Bearer")){
-            throw new InvalidTokenException(MessageConstants.INVALID_REQUEST);
-        }
-
-        token = token.substring(7);
-        String email = jwtUtility.getEmailFromToken(token);
+        String email = validateRequestAndGiveEmail(request);
 
         postService.deletePost(id, email);
 
@@ -63,14 +49,7 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDto>> updatePost(@RequestBody PostDto postDto , @PathVariable String id, HttpServletRequest request)
             throws InvalidTokenException, BadRequestException {
 
-        String token = request.getHeader("Authorization");
-
-        if(token == null || !token.startsWith("Bearer")){
-            throw new InvalidTokenException(MessageConstants.INVALID_REQUEST);
-        }
-
-        token = token.substring(7);
-        String email = jwtUtility.getEmailFromToken(token);
+        String email = validateRequestAndGiveEmail(request);
 
         PostDto responseDto  = postService.updatePostContent(id, postDto, email );
         return ApiResponse.response(HttpStatus.ACCEPTED, MessageConstants.BLOG_UPDATED, responseDto);
@@ -90,6 +69,18 @@ public class PostController {
         List<PostDto> response = postService.getAllMyPost(id,page);
 
         return ApiResponse.response(HttpStatus.OK, MessageConstants.BLOG_FETCHED, response);
+    }
+
+    private String validateRequestAndGiveEmail(HttpServletRequest request) throws InvalidTokenException {
+
+        String token = request.getHeader("Authorization");
+
+        if(token == null || !token.startsWith("Bearer")){
+            throw new InvalidTokenException(MessageConstants.INVALID_REQUEST);
+        }
+
+        token = token.substring(7);
+        return jwtUtility.getEmailFromToken(token);
     }
 
 }
