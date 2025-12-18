@@ -1,6 +1,7 @@
 package com.practice.thoughtstream.security;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,9 +17,11 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/public", "/auth/**").permitAll()
-                                .requestMatchers("/home").permitAll()
-                                    .requestMatchers("/page1").permitAll()
-                        )
+                        .requestMatchers(HttpMethod.GET,"/post/**   ").permitAll()
+                        .requestMatchers("/post/**").authenticated()
+                        .requestMatchers("/home").permitAll()
+                        .requestMatchers("/page1").permitAll()
+                )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .build();

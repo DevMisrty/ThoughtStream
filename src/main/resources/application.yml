@@ -17,3 +17,6 @@ spring:
 
 jwt:
   secretkey: djklfhaiudhfliuahsjknsjfdngjksdflkghlsakndgpiuahdsbnvaiuksdhgvioubaijdscvh
+
+pagination:
+  pageSize: 10
