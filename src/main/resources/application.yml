@@ -16,7 +16,7 @@ spring:
 # CUSTOM ENVIRONMENT VARIABLES
 
 jwt:
-  secretkey: djklfhaiudhfliuahsjknsjfdngjksdflkghlsakndgpiuahdsbnvaiuksdhgvioubaijdscvh
+  secretKey: djklfhaiudhfliuahsjknsjfdngjksdflkghlsakndgpiuahdsbnvaiuksdhgvioubaijdscvh
 
 pagination:
   pageSize: 10

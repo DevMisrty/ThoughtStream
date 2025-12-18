@@ -12,7 +12,11 @@ public interface PostService {
 
     PostDto updatePostContent(String id, PostDto postDto, String email) throws BadRequestException;
 
-    PostDto getPost(String id);
+    PostDto getPost(String id, String email);
 
-    List<PostDto> getAllMyPost(String id, Integer page);
+    List<PostDto> getAllMyPost(String id,String email, Integer page);
+
+    List<PostDto> getPostByCategory(String category, Integer page);
+
+    List<PostDto> getPostByTags(List<String> tags, Integer page);
 }

@@ -6,14 +6,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class PostDto {
 
-    private String authorName;
+    private String id;
     private String title;
     private String content;
-    private PostStatus status;
+    private String status;
+
+    private String category;
+    private List<String> tags;
 
 }

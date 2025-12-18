@@ -3,9 +3,11 @@ package com.practice.thoughtstream.controller;
 import com.practice.thoughtstream.dto.ApiResponse;
 import com.practice.thoughtstream.dto.PostDto;
 import com.practice.thoughtstream.exceptionHandler.exception.InvalidTokenException;
+import com.practice.thoughtstream.model.Category;
 import com.practice.thoughtstream.service.PostService;
 import com.practice.thoughtstream.utility.JwtUtility;
 import com.practice.thoughtstream.utility.MessageConstants;
+import com.sun.jdi.request.InvalidRequestStateException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
@@ -56,18 +58,62 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PostDto>> getPostByPostId(@PathVariable String id){
-        return ApiResponse.response(HttpStatus.OK, MessageConstants.BLOG_FETCHED, postService.getPost(id));
+    public ResponseEntity<ApiResponse<PostDto>> getPostByPostId(@PathVariable String id, HttpServletRequest request) {
+
+        PostDto response = null;
+        try{
+            String email = validateRequestAndGiveEmail(request);
+            response = postService.getPost(id, email);
+
+        }catch(InvalidTokenException e){
+            response = postService.getPost(id, null);
+        }
+
+        return ApiResponse.response(HttpStatus.OK, MessageConstants.BLOG_FETCHED, response);
     }
 
     @GetMapping("/{id}/{page}")
-    public ResponseEntity<ApiResponse<List<PostDto>>> getAllMyPost(@PathVariable String id ,@PathVariable Integer page)
+    public ResponseEntity<ApiResponse<List<PostDto>>> getAllMyPost(@PathVariable String id ,@PathVariable Integer page, HttpServletRequest request)
             throws InvalidTokenException {
 
         if(page<0)page=0;
 
-        List<PostDto> response = postService.getAllMyPost(id,page);
+        List<PostDto> response = null;
 
+        try{
+            String email = validateRequestAndGiveEmail(request);
+            response = postService.getAllMyPost(id, email, page);
+
+        }catch(InvalidTokenException e){
+            response = postService.getAllMyPost(id,null, page);
+        }
+
+        return ApiResponse.response(HttpStatus.OK, MessageConstants.BLOG_FETCHED, response);
+    }
+
+    @GetMapping("/category/{category}/{page}")
+    public ResponseEntity<ApiResponse<List<PostDto>>> getPostByCategory(@PathVariable String category, @PathVariable Integer page) throws InvalidTokenException {
+
+        if(page< 0)page = 0;
+
+        if(category == null || isValidCategory(category)){
+           throw new InvalidTokenException(MessageConstants.INVALID_REQUEST);
+        }
+
+        List<PostDto> response = postService.getPostByCategory(category, page);
+        return ApiResponse.response(HttpStatus.OK,MessageConstants.BLOG_FETCHED, response);
+    }
+
+    @GetMapping("/tags/{page}")
+    public ResponseEntity<ApiResponse<List<PostDto>>> getPostByTag(@RequestParam List<String> tags, @PathVariable Integer page){
+
+        if(tags.isEmpty()){
+            throw new InvalidRequestStateException(MessageConstants.INVALID_REQUEST);
+        }
+
+        if(page < 0)page =0;
+
+        List<PostDto> response = postService.getPostByTags(tags, page);
         return ApiResponse.response(HttpStatus.OK, MessageConstants.BLOG_FETCHED, response);
     }
 
@@ -75,12 +121,21 @@ public class PostController {
 
         String token = request.getHeader("Authorization");
 
-        if(token == null || !token.startsWith("Bearer")){
+        if(token == null || !token.startsWith("Bearer ")){
             throw new InvalidTokenException(MessageConstants.INVALID_REQUEST);
         }
 
         token = token.substring(7);
         return jwtUtility.getEmailFromToken(token);
+    }
+
+    private boolean isValidCategory(String value) {
+        try {
+            Category category = Category.valueOf(value.toUpperCase()); // enum constants are usually uppercase
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
 }

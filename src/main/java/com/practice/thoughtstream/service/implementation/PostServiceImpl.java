@@ -1,7 +1,9 @@
 package com.practice.thoughtstream.service.implementation;
 
 import com.practice.thoughtstream.dto.PostDto;
+import com.practice.thoughtstream.model.Category;
 import com.practice.thoughtstream.model.Post;
+import com.practice.thoughtstream.model.PostStatus;
 import com.practice.thoughtstream.model.Users;
 import com.practice.thoughtstream.repository.PostRepository;
 import com.practice.thoughtstream.repository.UsersRepository;
@@ -11,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,10 +45,15 @@ public class PostServiceImpl implements PostService {
         Users users = userRepo.findUsersByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(MessageConstants.USER_NOT_FOUND));
 
+        post.setAuthorName(users.getFirstName()+ "  " + users.getLastName());
         post.setUsers(users);
+        post.setStatus(PostStatus.valueOf(postDto.getStatus().toUpperCase()));
+        post.setCategory(Category.valueOf(postDto.getCategory().toUpperCase()));
+        post.setTags(postDto.getTags());
 
         repo.save(post);
-        return modelMapper.map(post, PostDto.class);
+        var response = modelMapper.map(post, PostDto.class);
+        return  response;
     }
 
     @Override
@@ -66,13 +76,16 @@ public class PostServiceImpl implements PostService {
 
         Post post = repo.findById(id)
                 .orElseThrow(()-> new NoSuchElementException(MessageConstants.BLOG_NOT_FOUND));
+
+        System.out.println(post);
         
         if(!post.getUsers().getEmail().equals(email)){
             throw new NoSuchElementException(MessageConstants.BLOG_NOT_FOUND);
         }
 
-        post = modelMapper.map(postDto, Post.class);
-        post.setId(id);
+        post.setTitle(postDto.getTitle());
+        post.setContent(postDto.getContent());
+        post.setStatus(PostStatus.valueOf(postDto.getStatus().toUpperCase()));
 
         Post savedPost = repo.save(post);
 
@@ -82,27 +95,64 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostDto getPost(String id) {
+    public PostDto getPost(String id, String email) {
         isValidPost(id);
 
         Post post = repo.findById(id)
                 .orElseThrow(()-> new NoSuchElementException(MessageConstants.BLOG_NOT_FOUND));
 
-         return modelMapper.map(post, PostDto.class);
+        PostDto mappedDto = modelMapper.map(post, PostDto.class);
+
+        if(checkPostStatus(mappedDto) || post.getUsers().getEmail().equals(email)) return mappedDto;
+        throw new NoSuchElementException(MessageConstants.BLOG_NOT_FOUND);
     }
 
     @Override
-    public List<PostDto> getAllMyPost(String id, Integer page) {
+    public List<PostDto> getAllMyPost(String id,String email, Integer page) {
 
         if(!userRepo.existsById(id)){
             throw new UsernameNotFoundException(MessageConstants.USER_NOT_FOUND);
         }
-        return getPageablePostDto(id,page);
+        List<PostDto> response = getPageablePostDto(id, page);
+
+        if(email == null){
+            return response.stream()
+                    .filter(this::checkPostStatus)
+                    .toList();
+        }
+        return response;
+    }
+
+    @Override
+    public List<PostDto> getPostByCategory(String category, Integer page) {
+
+        Pageable pageable = PageRequest.of(page, pageSize);
+        List<Post> allPost = repo.findAllByCategory(Category.valueOf(category.toUpperCase()), pageable).getContent();
+
+        return allPost.stream()
+                .map(post -> modelMapper.map(post, PostDto.class))
+                .toList();
+    }
+
+    @Override
+    public List<PostDto> getPostByTags(List<String> tags, Integer page) {
+
+        Pageable pageable = PageRequest.of(page, pageSize);
+
+        List<Post> allPost = repo.findAllByTagsIn(tags, pageable).getContent();
+
+        return allPost.stream()
+                .map(post -> modelMapper.map(post, PostDto.class))
+                .toList();
+    }
+
+    private boolean checkPostStatus(PostDto post){
+        return post.getStatus().equalsIgnoreCase("PUBLISHED");
     }
 
     private List<PostDto> getPageablePostDto(String id ,Integer page){
         Pageable pageable = PageRequest.of(page,pageSize);
-        List<Post> allPost = repo.findAllByUsers_Id(id, pageable);
+        List<Post> allPost = repo.findAllByUsers_Id(id, pageable).getContent();
 
         return allPost
                 .stream()
