@@ -2,15 +2,20 @@ spring:
   application:
     name: ThoughtStream
 
+  cache:
+    type: redis
+
   data:
     mongodb:
       auto-index-creation: true
     redis:
-      host: localhost
+      host: redis
       port: 6379
+      ssl:
+        enabled: false
 
   mongodb:
-    uri: mongodb://localhost:27017/thoughtstreamdb
+    uri: mongodb://mongodb:27017/thoughtstreamdb
 
 
 # CUSTOM ENVIRONMENT VARIABLES

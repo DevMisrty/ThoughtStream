@@ -58,6 +58,7 @@ public class JWtFilter extends OncePerRequestFilter {
             }
         } catch (Exception ex) {
             SecurityContextHolder.clearContext();
+            System.out.println("SomeThing went wrong, jwt token error");
         }
 
         filterChain.doFilter(request, response);

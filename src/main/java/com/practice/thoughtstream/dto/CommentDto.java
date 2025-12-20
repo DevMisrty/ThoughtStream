@@ -1,4 +1,4 @@
-package com.practice.thoughtstream.dto.response;
+package com.practice.thoughtstream.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,9 +10,8 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class UserResponseDto implements Serializable {
+public class CommentDto implements Serializable {
 
-    private String firstName;
-    private String lastName;
-    private String email;
+    private String message;
+
 }

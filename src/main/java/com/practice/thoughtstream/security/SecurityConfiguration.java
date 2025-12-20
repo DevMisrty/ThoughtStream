@@ -25,6 +25,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/public", "/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/post/{id}" , "/post/{id}/{page}").permitAll()
                         .requestMatchers("/post/**").authenticated()
+                        .requestMatchers("/comment/**").authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)

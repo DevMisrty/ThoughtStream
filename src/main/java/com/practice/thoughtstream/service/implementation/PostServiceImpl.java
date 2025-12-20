@@ -39,6 +39,7 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
+    @CachePut(value = "post", key = "#result.id")
     public PostDto addNewPost(PostDto postDto, String email) {
         Post post = modelMapper.map(postDto, Post.class);
 
@@ -56,6 +57,7 @@ public class PostServiceImpl implements PostService {
         return  response;
     }
 
+    @CacheEvict(value = "post", key = "#id")
     @Override
     public void deletePost(String id, String email) throws BadRequestException {
         isValidPost(id);
@@ -71,6 +73,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @CachePut(cacheNames = "post", key = "#id")
     public PostDto updatePostContent(String id, PostDto postDto, String email) throws BadRequestException {
         isValidPost(id);
 
@@ -95,6 +98,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Cacheable(value = "post", key = "#id")
     public PostDto getPost(String id, String email) {
         isValidPost(id);
 
@@ -108,6 +112,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Cacheable(cacheNames="post", key = "{#id, #page}")
     public List<PostDto> getAllMyPost(String id,String email, Integer page) {
 
         if(!userRepo.existsById(id)){
@@ -124,6 +129,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Cacheable(cacheNames="post", key = "{#category, #page}")
     public List<PostDto> getPostByCategory(String category, Integer page) {
 
         Pageable pageable = PageRequest.of(page, pageSize);
@@ -135,6 +141,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Cacheable(cacheNames="post", key = "{#tags, #page}")
     public List<PostDto> getPostByTags(List<String> tags, Integer page) {
 
         Pageable pageable = PageRequest.of(page, pageSize);

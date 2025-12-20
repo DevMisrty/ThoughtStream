@@ -6,10 +6,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
+import java.io.Serializable;
+
 @Document
 @Data
 @NoArgsConstructor @AllArgsConstructor
-public class Users {
+public class Users implements Serializable {
 
     @MongoId
     private String id;
